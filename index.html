@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UGC Storyboard</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #111; }
+.nav {
+  display: flex; align-items: center;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 0 1.5rem;
+  background: #fff;
+  position: sticky; top: 0; z-index: 10;
+  height: 48px;
+}
+.nav-tabs { display: flex; }
+.nav-tab {
+  font-size: 13px; color: #888; padding: 0 16px; height: 48px;
+  border: none; border-bottom: 2px solid transparent;
+  cursor: pointer; background: none; font-family: inherit;
+  display: flex; align-items: center;
+}
+.nav-tab.active { color: #111; border-bottom: 2px solid #111; font-weight: 500; }
+.nav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn-primary {
+  background: #111; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: inherit; transition: opacity 0.15s;
+}
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary {
+  background: none; border: 1px solid #ddd; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; color: #555; cursor: pointer; font-family: inherit;
+}
+.btn-icon { background: none; border: none; cursor: pointer; color: #aaa; font-size: 18px; padding: 8px; line-height: 1; }
+.btn-icon:hover { color: #111; }
+.page { display: none; padding: 1.5rem; min-height: calc(100vh - 48px); }
+.page.active { display: block; }
+/* INSTRUCTIONS */
+.instr-grid { display: grid; grid-template-columns: 220px 220px 1fr; gap: 12px; margin-bottom: 12px; }
+.instr-models { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.card {
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 16px;
+}
+.card-label {
+  font-size: 10px; font-weight: 600; color: #999; text-transform: uppercase;
+  letter-spacing: 0.07em; display: block; margin-bottom: 4px;
+}
+.card-sub { font-size: 11px; color: #bbb; display: block; margin-bottom: 10px; }
+.dropzone {
+  border: 1px dashed #ddd; border-radius: 8px; padding: 20px 8px;
+  text-align: center; color: #bbb; font-size: 12px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  transition: background 0.15s;
+}
+.dropzone:hover { background: #fafafa; }
+.dropzone img { width: 100%; height: 100px; object-fit: cover; border-radius: 6px; display: block; }
+.prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.prod-slot {
+  border: 1px dashed #ddd; border-radius: 8px; aspect-ratio: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; cursor: pointer; color: #ccc; font-size: 11px;
+  position: relative; overflow: hidden; transition: background 0.15s;
+}
+.prod-slot:hover { background: #fafafa; }
+.prod-slot.wide { grid-column: 1/-1; aspect-ratio: auto; height: 38px; flex-direction: row; }
+.prod-slot img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:8px; }
+.script-area {
+  width: 100%; min-height: 150px; font-size: 13px; font-family: inherit;
+  color: #111; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px;
+  padding: 10px; resize: none; outline: none; line-height: 1.6;
+}
+.model-select { width: 100%; font-size: 13px; padding: 6px 4px; border-radius: 6px; border: 1px solid #e5e5e5; background: #fff; }
+.model-hint { font-size: 11px; color: #bbb; margin-top: 5px; }
+.lock-box {
+  margin-top: 10px; padding: 10px; background: #fafafa;
+  border-radius: 8px; border: 1px solid #e5e5e5;
+}
+.lock-label { font-size: 9px; font-weight: 600; color: #bbb; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+.lock-textarea { font-size: 10px; color: #555; line-height: 1.5; font-family: 'SF Mono', monospace; width: 100%; background: none; border: none; resize: none; outline: none; min-height: 40px; }
+.saved-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.saved-pill { font-size: 10px; background: #f0f0f0; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; color: #555; font-family: inherit; }
+.saved-pill:hover { background: #e5e5e5; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.save-btn { font-size: 10px; color: #888; background: none; border: 1px solid #e5e5e5; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-family: inherit; }
+/* STORYBOARD */
+.section-wrap { margin-bottom: 1.5rem; }
+.section-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px; padding-bottom: 10px;
+  border-bottom: 1px solid #e5e5e5; cursor: pointer;
+  user-select: none;
+}
+.section-head:hover .section-toggle { color: #111; }
+.seg-tag { font-size: 10px; font-weight: 600; padding: 3px 11px; border-radius: 20px; }
+.seg-meta { font-size: 11px; color: #bbb; }
+.section-toggle { font-size: 11px; color: #bbb; margin-left: auto; transition: color 0.15s; }
+.clip-wrap { margin-bottom: 8px; }
+.clip-row { display: flex; align-items: stretch; overflow-x: auto; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.clip-row::-webkit-scrollbar { height: 3px; }
+.clip-row::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+.block {
+  flex-shrink: 0; width: 195px;
+  background: #fff; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;
+  border-left: 1px solid #e5e5e5; border-right: none;
+  display: flex; flex-direction: column;
+}
+.block.first { border-radius: 10px 0 0 10px; }
+.block.last { border-right: 1px solid #e5e5e5; border-radius: 0 10px 10px 0; }
+.block.sketch-block { width: 100px; }
+.block.vprompt-block { width: 225px; }
+.block-head {
+  padding: 7px 10px; border-bottom: 1px solid #eee;
+  background: #fafafa; display: flex; align-items: center;
+  justify-content: space-between; flex-shrink: 0; border-radius: inherit;
+  border-radius: 0;
+}
+.block-type { font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+.block-model-sel {
+  font-size: 9px; color: #aaa; background: #fff; border: 1px solid #eee;
+  border-radius: 3px; padding: 1px 4px; cursor: pointer; font-family: inherit; max-width: 80px;
+}
+.block-body { padding: 8px 10px; flex: 1; display: flex; flex-direction: column; }
+.block-textarea {
+  font-size: 10.5px; color: #222; line-height: 1.55; width: 100%; flex: 1;
+  min-height: 72px; background: none; border: none; font-family: inherit;
+  resize: none; outline: none;
+}
+.block-textarea.loading { color: #bbb; font-style: italic; }
+.block-textarea.failed { color: #e24b4a; }
+.sketch-frame {
+  width: 100%; aspect-ratio: 9/16; max-height: 118px;
+  background: #f5f5f3; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.sketch-cap { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 8px; color: #bbb; padding: 0 4px; }
+.block-foot {
+  padding: 6px 10px; border-top: 1px solid #eee;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; gap: 4px;
+}
+.foot-left { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.btn-sm {
+  font-size: 9px; color: #999; background: none; border: 1px solid #e5e5e5;
+  border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-sm:hover { background: #f5f5f5; color: #333; }
+.btn-sm.copied { color: #39d98a; border-color: #39d98a; }
+.btn-sm.danger:hover { color: #e24b4a; border-color: #e24b4a; }
+.btn-play {
+  width: 22px; height: 22px; background: #111; border: none; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: opacity 0.15s;
+}
+.btn-play:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-play svg { fill: white; margin-left: 1px; }
+.connector {
+  width: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  color: #ccc; font-size: 11px; background: #fafafa;
+  border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;
+}
+.hint-panel {
+  display: none; padding: 8px 10px; border-top: 1px solid #eee;
+  background: #fafafa; flex-direction: column; gap: 6px;
+}
+.hint-panel.open { display: flex; }
+.hint-ta {
+  font-size: 10px; font-family: inherit; background: #fff; border: 1px solid #e5e5e5;
+  border-radius: 6px; padding: 5px 8px; resize: none; min-height: 30px;
+  color: #111; outline: none; width: 100%;
+}
+.hint-row { display: flex; gap: 6px; align-items: center; }
+.add-clip {
+  background: none; border: 1px dashed #ddd; border-radius: 8px;
+  padding: 7px 16px; font-size: 11px; color: #bbb; cursor: pointer;
+  font-family: inherit; margin-top: 6px; display: block; transition: background 0.15s;
+}
+.add-clip:hover { background: #fafafa; color: #888; }
+.collapsed-row {
+  padding: 10px 14px; background: #fff; border: 1px solid #e5e5e5;
+  border-radius: 10px; font-size: 11px; color: #bbb;
+  display: flex; justify-content: space-between;
+}
+.empty-state { text-align: center; padding: 5rem 2rem; color: #bbb; }
+.empty-state h3 { font-size: 16px; font-weight: 500; color: #999; margin-bottom: 8px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+/* SETTINGS */
+.settings-wrap { max-width: 680px; }
+.settings-section { margin-bottom: 2rem; }
+.settings-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.settings-desc { font-size: 11px; color: #bbb; margin-bottom: 14px; line-height: 1.5; }
+.model-row-s {
+  display: grid; grid-template-columns: 1fr 80px 60px; gap: 8px;
+  align-items: center; padding: 10px 12px; background: #fff;
+  border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 6px;
+}
+.add-model-form {
+  display: grid; grid-template-columns: 1fr 90px auto; gap: 8px;
+  align-items: center; padding: 12px; background: #fafafa;
+  border: 1px dashed #ddd; border-radius: 8px; margin-top: 12px;
+}
+.text-input {
+  font-size: 12px; font-family: inherit; background: #fff; border: 1px solid #e5e5e5;
+  border-radius: 8px; padding: 7px 10px; outline: none; color: #111; width: 100%;
+}
+.select-input {
+  font-size: 12px; font-family: inherit; background: #fff; border: 1px solid #e5e5e5;
+  border-radius: 8px; padding: 7px 8px; outline: none; color: #111;
+}
+/* PROJECTS */
+.project-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: #fafafa; border-radius: 8px;
+  margin-bottom: 4px; font-size: 12px;
+}
+.project-name { color: #333; flex: 1; }
+.project-meta { color: #bbb; font-size: 10px; margin-left: 8px; white-space: nowrap; }
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal {
+  background: #fff; border-radius: 12px; padding: 20px; width: 300px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+.modal-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+.modal-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+/* LOADING SPINNER */
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #eee; border-top-color: #111; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; background: #111; color: #fff;
+  padding: 10px 16px; border-radius: 8px; font-size: 12px; z-index: 200;
+  opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('instructions')">Instructions</button>
+    <button class="nav-tab" onclick="showPage('storyboard')">Storyboard</button>
+  </div>
+  <div class="nav-right">
+    <button class="btn-secondary" id="export-btn" style="display:none" onclick="exportCSV()">Export CSV</button>
+    <button class="btn-primary" id="gen-btn" onclick="generateAll()">Generate →</button>
+    <button class="btn-icon" onclick="showPage('settings')" title="Settings">⚙</button>
+  </div>
+</div>
+<!-- INSTRUCTIONS -->
+<div class="page active" id="page-instructions">
+  <div class="instr-grid">
+    <!-- Character -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label" style="margin:0">Character</span>
+        <button class="save-btn" id="save-char-btn" style="display:none" onclick="openModal('char')">Save</button>
+      </div>
+      <span class="card-sub">Reference sheet — multi-angle</span>
+      <div id="saved-chars" class="saved-pills"></div>
+      <div class="dropzone" id="char-drop" onclick="document.getElementById('char-file').click()">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="1.5" y="1.5" width="19" height="19" rx="3" stroke="#ccc" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="#ccc" stroke-width="1.2"/><path d="M1.5 15l5-5 4 4 3-3 6 6" stroke="#ccc" stroke-width="1.2"/></svg>
+        <span>Drop or click to upload</span>
+        <span style="font-size:10px;color:#ddd">1 reference sheet</span>
+      </div>
+      <input type="file" id="char-file" accept="image/*" style="display:none" onchange="handleChar(this)">
+      <div class="lock-box" id="char-lock-box" style="display:none">
+        <div class="lock-label">
+          Character lock
+          <span id="char-lock-status" style="font-weight:400;text-transform:none;letter-spacing:0"></span>
+        </div>
+        <textarea class="lock-textarea" id="char-lock-text" placeholder="Will be extracted automatically, or type manually..."></textarea>
+      </div>
+    </div>
+    <!-- Product -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label" style="margin:0">Product</span>
+        <button class="save-btn" id="save-prod-btn" style="display:none" onclick="openModal('prod')">Save</button>
+      </div>
+      <span class="card-sub">Up to 5 photos — different angles</span>
+      <div id="saved-prods" class="saved-pills"></div>
+      <div class="prod-grid">
+        <div class="prod-slot" id="ps0" onclick="trigSlot(0)"><span style="font-size:9px;font-weight:600;color:#ccc">1</span><span style="color:#ddd">+</span></div>
+        <div class="prod-slot" id="ps1" onclick="trigSlot(1)"><span style="font-size:9px;font-weight:600;color:#ccc">2</span><span style="color:#ddd">+</span></div>
+        <div class="prod-slot" id="ps2" onclick="trigSlot(2)"><span style="font-size:9px;font-weight:600;color:#ccc">3</span><span style="color:#ddd">+</span></div>
+        <div class="prod-slot" id="ps3" onclick="trigSlot(3)"><span style="font-size:9px;font-weight:600;color:#ccc">4</span><span style="color:#ddd">+</span></div>
+        <div class="prod-slot wide" id="ps4" onclick="trigSlot(4)"><span style="font-size:9px;font-weight:600;color:#ccc">5</span><span style="color:#ddd">+</span></div>
+      </div>
+      <input type="file" id="prod-file" accept="image/*" style="display:none" onchange="handleProd(this)">
+      <div class="lock-box" id="prod-lock-box" style="display:none">
+        <div class="lock-label">
+          Product lock
+          <span id="prod-lock-status" style="font-weight:400;text-transform:none;letter-spacing:0"></span>
+        </div>
+        <textarea class="lock-textarea" id="prod-lock-text" placeholder="Will be extracted automatically, or type manually..."></textarea>
+      </div>
+    </div>
+    <!-- Script -->
+    <div class="card">
+      <span class="card-label">Script</span>
+      <textarea class="script-area" id="script-input" placeholder="Paste your UGC script here...&#10;&#10;System auto-detects Hook · Problem · Solution · Proof · CTA&#10;and splits into 2-second clips automatically.&#10;&#10;Or label manually:&#10;Hook: I just came back from the office...&#10;Problem: Every bag I tried...&#10;Solution: Then I found Nordace..."></textarea>
+    </div>
+  </div>
+  <div class="instr-models">
+    <div class="card">
+      <span class="card-label">Image model</span>
+      <select class="model-select" id="img-model">
+        <option>Nano Banana Pro</option>
+        <option>Seedream 4.5</option>
+      </select>
+      <div class="model-hint">Used for First Frame + Last Frame prompt generation</div>
+    </div>
+    <div class="card">
+      <span class="card-label">Video model</span>
+      <select class="model-select" id="vid-model">
+        <option>Kling V3</option>
+        <option>Seedance 2.0</option>
+        <option>Veo 3.1</option>
+        <option>Grok Aurora</option>
+      </select>
+      <div class="model-hint">Used for Video Prompt generation</div>
+    </div>
+  </div>
+  <div id="projects-card" style="display:none;margin-top:12px" class="card">
+    <span class="card-label">Recent projects</span>
+    <div id="projects-list" style="margin-top:8px"></div>
+  </div>
+</div>
+<!-- STORYBOARD -->
+<div class="page" id="page-storyboard">
+  <div id="storyboard-content">
+    <div class="empty-state">
+      <h3>No storyboard yet</h3>
+      <p>Add a script on the Instructions page<br>and click <strong>Generate →</strong></p>
+    </div>
+  </div>
+</div>
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="settings-wrap">
+    <div class="settings-section">
+      <div class="settings-title">Models</div>
+      <div class="settings-desc">Manage image and video models. New models appear in all dropdowns.</div>
+      <div id="models-list"></div>
+      <div class="add-model-form">
+        <input class="text-input" id="new-model-name" placeholder="Model name (e.g. Kling V4)">
+        <select class="select-input" id="new-model-type">
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+        </select>
+        <button class="btn-primary" onclick="addModel()">+ Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Save</div>
+    <input class="text-input" id="modal-input" placeholder="Name...">
+    <div class="modal-row">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="confirmSave()">Save</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// ─── CONFIG ───────────────────────────────────────────────
+const API_ENDPOINT = '/api/generate';
+const SYSTEM_PROMPT = `You are an expert UGC storyboard generator for DTC brands producing Meta and TikTok video ads.
+CORE PRINCIPLE — UGC DNA (always apply, zero exceptions):
+Self-filmed energy. Never studio-polished. Natural imperfection. Slight handheld shake. Real environments. Organic product integration. Conversational delivery. Micro-imperfections are features.
+NEVER use: cinematic, professional, studio, polished, commercial.
+CLIP DURATION RULE: Every clip = maximum 2 seconds. Each clip must be a DIFFERENT shot from adjacent clips. Use visual contrast: ECU after WS, static after movement, face after product.
+OUTPUT FORMAT: Respond ONLY with valid JSON, no markdown, no explanation:
+{"firstFrame":"complete prompt","lastFrame":"complete prompt","videoPrompt":"complete prompt","sketchDescription":"framing · location · action"}
+CRITICAL PROMPT RULES:
+1. Insert character and product descriptions VERBATIM — never use placeholders like [CHARACTER] or [PRODUCT]
+2. Every prompt must include: shot on iPhone, vertical 9:16, natural handheld camera shake, slightly off-center framing, looks like organic social content, not an ad
+3. NEVER use: cinematic, professional lighting, studio, polished, commercial, model, influencer
+IMAGE PROMPT FORMULA (First Frame + Last Frame):
+[camera device] + [full character description] + [action/pose] + [full product description] + [specific location details] + [lighting] + [UGC authenticity markers]
+VIDEO PROMPT FORMULA:
+[specific location]. [full character description] [precise sequential action]. [full product description] [how it appears/moves]. Camera: [movement]. [lighting]. UGC energy. 2 sec.
+PLATFORM GUIDELINES:
+Nano Banana Pro: Natural language full sentences, 60-130 words, lifestyle documentary approach, conversational style. Write like briefing a photographer.
+Seedream 4.5: Subject first, 30-80 words, full sentences NOT comma tags, no negative prompts. First words carry most weight.
+Grok Aurora: Conversational natural language, 40-100 words, photorealism focus, authentic feel.
+Kling V3: Scene→Characters→Action→Camera→Audio. Camera motion mandatory. handheld shoulder-cam or handheld drift for UGC. Describe motion beginning→middle→end.
+Seedance 2.0: Subject+Motion+Scene+Camera+Style. Simple clear language. No negative prompts. Use "Cut to" for transitions. Set non-fixed camera for movement.
+Veo 3.1: Shot+Subject+Action+Setting+Aesthetics, 100-150 words, one dominant action per clip. Audio described after visuals: Audio: label.`;
+// ─── STATE ────────────────────────────────────────────────
+const S = {
+  charB64: null, charLock: '',
+  prodB64s: [null,null,null,null,null], prodLock: '',
+  imgModel: 'Nano Banana Pro', vidModel: 'Kling V3',
+  clips: [], collapsed: {},
+  savedChars: [], savedProds: [],
+  projects: [],
+  activeSlot: 0, modalType: null,
+  customImgModels: [], customVidModels: []
+};
+// ─── STORAGE ──────────────────────────────────────────────
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }
+function lsSet(k,v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+function loadStorage() {
+  S.projects = lsGet('ugc-projects') || [];
+  S.savedChars = lsGet('ugc-chars') || [];
+  S.savedProds = lsGet('ugc-prods') || [];
+  S.customImgModels = lsGet('ugc-img-models') || [];
+  S.customVidModels = lsGet('ugc-vid-models') || [];
+  renderSaved(); renderProjects(); updateModelSelects();
+}
+// ─── HELPERS ──────────────────────────────────────────────
+function toast(msg, duration=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+function fileToB64(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej();
+    r.readAsDataURL(file);
+  });
+}
+function getAllModels(type) {
+  if (type === 'image') return ['Nano Banana Pro', 'Seedream 4.5', ...S.customImgModels];
+  return ['Kling V3', 'Seedance 2.0', 'Veo 3.1', 'Grok Aurora', ...S.customVidModels];
+}
+// ─── API ──────────────────────────────────────────────────
+async function callAPI(messages, maxTokens=1000, system=SYSTEM_PROMPT) {
+  const res = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: maxTokens, system, messages })
+  });
+  if (!res.ok) throw new Error('API error: ' + res.status);
+  const d = await res.json();
+  return d.content?.[0]?.text || '';
+}
+async function extractLock(b64s, type) {
+  const prompt = type === 'character'
+    ? 'Analyze this character reference sheet. Extract a precise locked description for AI video generation prompts. Include: age range, body type, skin tone (specific shade), hair (color/length/texture/style), notable facial features, complete outfit (every item with color/material/fit), accessories, footwear. Output ONE sentence only, start directly with description, no intro text.'
+    : 'Analyze these product images. Extract a precise locked description for AI video generation prompts. Include: product type, exact color shade, material/texture, shape/silhouette, hardware details (zippers/buckles/stitching), size impression relative to person, distinguishing features. Output ONE sentence only, start with product type, no intro text.';
+  const content = b64s.filter(Boolean).map(b => ({
+    type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b }
+  }));
+  content.push({ type: 'text', text: prompt });
+  const res = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 250, messages: [{ role: 'user', content }] })
+  });
+  if (!res.ok) throw new Error('API error');
+  const d = await res.json();
+  return d.content?.[0]?.text?.trim() || '';
+}
+async function genClip(clip, hint='', hintB64=null) {
+  const content = [];
+  if (hintB64) content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: hintB64 } });
+  content.push({ type: 'text', text:
+`CHARACTER DESCRIPTION: ${S.charLock || 'not provided'}
+PRODUCT DESCRIPTION: ${S.prodLock || 'not provided'}
+SCRIPT LINE: "${clip.scriptLine}"
+SEGMENT TYPE: ${clip.segment}
+CLIP NUMBER: ${clip.clipNum}
+IMAGE MODEL: ${S.imgModel}
+VIDEO MODEL: ${S.vidModel}
+${hint ? 'ADDITIONAL HINT: ' + hint : ''}
+Generate First Frame prompt, Last Frame prompt, Video Prompt, and sketch description for this clip.
+Remember: insert descriptions verbatim, max 2 seconds, UGC style, no placeholders.`
+  });
+  const txt = await callAPI([{ role: 'user', content }]);
+  try {
+    const clean = txt.replace(/```json\n?|```/g, '').trim();
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    return JSON.parse(clean.slice(start, end + 1));
+  } catch(e) {
+    return { firstFrame: txt.slice(0, 300), lastFrame: '', videoPrompt: '', sketchDescription: clip.segment + ' · clip ' + clip.clipNum };
+  }
+}
+// ─── SCRIPT PARSING ───────────────────────────────────────
+function parseScript(script) {
+  const segTypes = ['Hook','Problem','Solution','Proof','CTA'];
+  const kw = {
+    Hook: ['hook:', '[hook]', 'hook -'],
+    Problem: ['problem:', '[problem]', 'problem -'],
+    Solution: ['solution:', '[solution]', 'solution -'],
+    Proof: ['proof:', '[proof]', 'proof -', 'result:', 'demo:'],
+    CTA: ['cta:', '[cta]', 'cta -', 'call to action:']
+  };
+  const lines = script.trim().split(/\n+/).filter(l => l.trim());
+  const segments = [];
+  let curSeg = null, curLines = [];
+  for (const line of lines) {
+    const low = line.toLowerCase();
+    let found = null;
+    for (const [s, ks] of Object.entries(kw)) {
+      if (ks.some(k => low.startsWith(k))) { found = s; break; }
+    }
+    if (found) {
+      if (curSeg && curLines.length) segments.push({ type: curSeg, text: curLines.join(' ') });
+      curSeg = found;
+      curLines = [line.replace(/^[^:]+:\s*/i, '').trim()].filter(Boolean);
+    } else {
+      curLines.push(line.trim());
+    }
+  }
+  if (curLines.length) {
+    if (!curSeg) {
+      const full = curLines.join(' ');
+      const words = full.split(' ');
+      const cs = Math.ceil(words.length / 5);
+      segTypes.forEach((t, i) => {
+        const c = words.slice(i * cs, (i + 1) * cs).join(' ');
+        if (c.trim()) segments.push({ type: t, text: c });
+      });
+    } else {
+      segments.push({ type: curSeg, text: curLines.join(' ') });
+    }
+  }
+  const clips = [];
+  let num = 1;
+  for (const seg of segments) {
+    const wc = seg.text.split(' ').length;
+    const dur = Math.max(2, Math.round(wc / 3));
+    const n = Math.max(1, Math.ceil(dur / 2));
+    const sw = Math.ceil(wc / n);
+    const ws = seg.text.split(' ');
+    for (let i = 0; i < n; i++) {
+      const ct = ws.slice(i * sw, (i + 1) * sw).join(' ') || seg.text;
+      clips.push({
+        id: 'c' + Date.now() + num,
+        segment: seg.type, scriptLine: ct,
+        clipNum: num++,
+        firstFrame: '', lastFrame: '', videoPrompt: '',
+        sketchDescription: '', loading: false,
+        _hintB64: null
+      });
+    }
+  }
+  return clips;
+}
+// ─── GENERATE ALL ─────────────────────────────────────────
+async function generateAll() {
+  const script = document.getElementById('script-input').value.trim();
+  if (!script) { toast('Please add a script first'); return; }
+  S.charLock = document.getElementById('char-lock-text').value.trim() || S.charLock;
+  S.prodLock = document.getElementById('prod-lock-text').value.trim() || S.prodLock;
+  S.imgModel = document.getElementById('img-model').value;
+  S.vidModel = document.getElementById('vid-model').value;
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generating...';
+  S.clips = parseScript(script).map(c => ({ ...c, loading: true }));
+  showPage('storyboard');
+  renderStoryboard();
+  for (let i = 0; i < S.clips.length; i++) {
+    try {
+      const result = await genClip(S.clips[i]);
+      Object.assign(S.clips[i], result, { loading: false });
+    } catch(e) {
+      S.clips[i].loading = false;
+      S.clips[i].firstFrame = 'Generation failed. Check API key in Cloudflare settings.';
+      S.clips[i]._failed = true;
+    }
+    renderStoryboard();
+  }
+  btn.disabled = false;
+  btn.textContent = 'Generate →';
+  document.getElementById('export-btn').style.display = '';
+  toast('Storyboard generated!');
+  const proj = {
+    id: Date.now(),
+    name: script.split(' ').slice(0, 6).join(' ') + '...',
+    date: new Date().toLocaleDateString(),
+    clips: S.clips.length
+  };
+  S.projects = [proj, ...S.projects].slice(0, 20);
+  lsSet('ugc-projects', S.projects);
+  renderProjects();
+}
+// ─── RENDER STORYBOARD ────────────────────────────────────
+const SEG_COLORS = {
+  Hook: { bg:'#EEEDFE', c:'#3C3489' },
+  Problem: { bg:'#FAECE7', c:'#712B13' },
+  Solution: { bg:'#EAF3DE', c:'#27500A' },
+  Proof: { bg:'#E6F1FB', c:'#0C447C' },
+  CTA: { bg:'#FAEEDA', c:'#633806' }
+};
+const SEG_ORDER = ['Hook','Problem','Solution','Proof','CTA'];
+function renderStoryboard() {
+  const cont = document.getElementById('storyboard-content');
+  if (!S.clips.length) {
+    cont.innerHTML = '<div class="empty-state"><h3>No storyboard yet</h3><p>Add a script and click <strong>Generate →</strong></p></div>';
+    return;
+  }
+  const grouped = {};
+  S.clips.forEach(c => { if(!grouped[c.segment]) grouped[c.segment]=[]; grouped[c.segment].push(c); });
+  let html = '';
+  SEG_ORDER.filter(s => grouped[s]).forEach(seg => {
+    const clips = grouped[seg];
+    const col = SEG_COLORS[seg] || { bg:'#f0f0f0', c:'#555' };
+    const isCol = S.collapsed[seg];
+    html += `<div class="section-wrap">
+      <div class="section-head" onclick="toggleSeg('${seg}')">
+        <span class="seg-tag" style="background:${col.bg};color:${col.c}">${seg}</span>
+        <span class="seg-meta">${clips.length} clip${clips.length!==1?'s':''} · 2 sec each</span>
+        <span class="section-toggle">${isCol ? 'expand ↓' : 'collapse ↑'}</span>
+      </div>`;
+    if (!isCol) {
+      clips.forEach(clip => {
+        html += `<div class="clip-wrap"><div class="clip-row">`;
+        html += makeBlock(clip, 'Script line', 'scriptLine', 'first', '', false);
+        html += `<div class="connector">→</div>`;
+        html += makeBlock(clip, 'First frame', 'firstFrame', '', S.imgModel, true);
+        html += `<div class="connector">→</div>`;
+        html += makeBlock(clip, 'Last frame', 'lastFrame', '', S.imgModel, true);
+        html += `<div class="connector">→</div>`;
+        html += makeSketchBlock(clip);
+        html += `<div class="connector">→</div>`;
+        html += makeVPromptBlock(clip);
+        html += `</div>`;
+        html += makeHintPanel(clip.id);
+        html += `</div>`;
+      });
+      html += `<button class="add-clip" onclick="addClip('${seg}')">+ Add clip</button>`;
+    } else {
+      html += `<div class="collapsed-row"><span>${clips.length} clips</span><span>click header to expand</span></div>`;
+      html += `<button class="add-clip" onclick="addClip('${seg}')">+ Add clip</button>`;
+    }
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
+}
+function makeBlock(clip, label, field, extraClass, model, showModel) {
+  const val = clip.loading ? 'generating...' : (clip[field] || '');
+  const isFailed = clip._failed && field === 'firstFrame';
+  const modelOpts = showModel ? (label.includes('frame')
+    ? getAllModels('image').map(m => `<option${m===S.imgModel?' selected':''}>${m}</option>`).join('')
+    : getAllModels('video').map(m => `<option${m===S.vidModel?' selected':''}>${m}</option>`).join('')
+  ) : '';
+  const modelSel = showModel && model ? `<select class="block-model-sel" onchange="changeModel(this,'${label.includes('frame')?'img':'vid'}')">${modelOpts}</select>` : '';
+  return `<div class="block ${extraClass}">
+    <div class="block-head"><span class="block-type">${label}</span>${modelSel}</div>
+    <div class="block-body">
+      <textarea class="block-textarea${clip.loading?' loading':''}${isFailed?' failed':''}"
+        ${clip.loading?'disabled':''}
+        onchange="updateClip('${clip.id}','${field}',this.value)">${escHtml(val)}</textarea>
+    </div>
+    <div class="block-foot">
+      <div class="foot-left">
+        <button class="btn-sm" onclick="toggleHint('${clip.id}')">+ Hint</button>
+        ${val && !clip.loading ? `<button class="btn-sm" onclick="copyField(this,'${clip.id}','${field}')">Copy</button>` : ''}
+      </div>
+      <button class="btn-play" onclick="regenClip('${clip.id}')" ${clip.loading?'disabled':''}>
+        <svg width="7" height="8" viewBox="0 0 7 8"><path d="M1 1l5 3-5 3V1z"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+function makeSketchBlock(clip) {
+  const desc = clip.sketchDescription || '';
+  const hasECU = desc.toLowerCase().includes('ecu') || desc.toLowerCase().includes('close');
+  const hasWS = desc.toLowerCase().includes('ws') || desc.toLowerCase().includes('wide');
+  const shape = hasECU
+    ? `<rect x="5" y="10" width="24" height="30" rx="2" stroke="currentColor" stroke-width="1"/>`
+    : hasWS
+    ? `<circle cx="17" cy="11" r="5" stroke="currentColor" stroke-width="1"/><path d="M5 24 Q17 18 29 24" stroke="currentColor" stroke-width="1" fill="none"/><path d="M9 32 L25 32 L23 44 L11 44 Z" stroke="currentColor" stroke-width="1" fill="none"/>`
+    : `<circle cx="17" cy="14" r="6" stroke="currentColor" stroke-width="1"/><path d="M6 28 Q17 22 28 28" stroke="currentColor" stroke-width="1" fill="none"/><rect x="9" y="32" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1"/>`;
+  return `<div class="block sketch-block">
+    <div class="block-head"><span class="block-type">Sketch</span></div>
+    <div class="block-body" style="padding:8px">
+      <div class="sketch-frame">
+        <svg width="34" height="52" viewBox="0 0 34 52" fill="none" style="opacity:${clip.loading?0.08:0.18}">
+          <rect x="1" y="1" width="32" height="50" rx="2" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1.5"/>
+          ${shape}
+        </svg>
+        ${clip.loading ? '<div style="position:absolute;font-size:9px;color:#bbb;text-align:center">gen...</div>' : ''}
+        <span class="sketch-cap">${escHtml(desc || 'sketch')}</span>
+      </div>
+    </div>
+    <div class="block-foot">
+      <div class="foot-left"><button class="btn-sm" onclick="toggleHint('${clip.id}')">+ Hint</button></div>
+      <button class="btn-play" onclick="regenClip('${clip.id}')" ${clip.loading?'disabled':''}>
+        <svg width="7" height="8" viewBox="0 0 7 8"><path d="M1 1l5 3-5 3V1z"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+function makeVPromptBlock(clip) {
+  const val = clip.loading ? 'generating...' : (clip.videoPrompt || '');
+  const modelOpts = getAllModels('video').map(m => `<option${m===S.vidModel?' selected':''}>${m}</option>`).join('');
+  return `<div class="block last vprompt-block">
+    <div class="block-head">
+      <span class="block-type">Video prompt</span>
+      <select class="block-model-sel" onchange="changeModel(this,'vid')">${modelOpts}</select>
+    </div>
+    <div class="block-body">
+      <textarea class="block-textarea${clip.loading?' loading':''}" ${clip.loading?'disabled':''}
+        onchange="updateClip('${clip.id}','videoPrompt',this.value)">${escHtml(val)}</textarea>
+    </div>
+    <div class="block-foot">
+      <div class="foot-left">
+        <button class="btn-sm" onclick="toggleHint('${clip.id}')">+ Hint</button>
+        ${val && !clip.loading ? `<button class="btn-sm" onclick="copyField(this,'${clip.id}','videoPrompt')">Copy</button>` : ''}
+        <button class="btn-sm danger" onclick="deleteClip('${clip.id}')">✕ Delete</button>
+      </div>
+      <button class="btn-play" onclick="regenClip('${clip.id}')" ${clip.loading?'disabled':''}>
+        <svg width="7" height="8" viewBox="0 0 7 8"><path d="M1 1l5 3-5 3V1z"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+function makeHintPanel(clipId) {
+  return `<div class="hint-panel" id="hint-${clipId}">
+    <textarea class="hint-ta" id="hint-text-${clipId}" placeholder="Add instruction, describe what to change..."></textarea>
+    <div class="hint-row">
+      <button class="btn-sm" onclick="document.getElementById('hint-file-${clipId}').click()">+ Image</button>
+      <span id="hint-img-label-${clipId}" style="font-size:9px;color:#bbb"></span>
+      <input type="file" id="hint-file-${clipId}" accept="image/*" style="display:none" onchange="setHintImg('${clipId}',this)">
+    </div>
+  </div>`;
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ─── ACTIONS ──────────────────────────────────────────────
+function toggleSeg(seg) { S.collapsed[seg] = !S.collapsed[seg]; renderStoryboard(); }
+function updateClip(id, field, val) {
+  const c = S.clips.find(x => x.id === id);
+  if (c) c[field] = val;
+}
+function deleteClip(id) {
+  S.clips = S.clips.filter(c => c.id !== id);
+  renderStoryboard();
+  toast('Clip deleted');
+}
+function addClip(seg) {
+  const segClips = S.clips.filter(c => c.segment === seg);
+  const last = segClips[segClips.length - 1];
+  const newClip = {
+    id: 'c' + Date.now(), segment: seg,
+    scriptLine: '', clipNum: S.clips.length + 1,
+    firstFrame: '', lastFrame: '', videoPrompt: '',
+    sketchDescription: '', loading: false, _hintB64: null
+  };
+  const idx = last ? S.clips.findIndex(c => c.id === last.id) + 1 : S.clips.length;
+  S.clips.splice(idx, 0, newClip);
+  renderStoryboard();
+}
+function toggleHint(id) {
+  const p = document.getElementById('hint-' + id);
+  if (p) p.classList.toggle('open');
+}
+function changeModel(sel, type) {
+  if (type === 'img') S.imgModel = sel.value;
+  else S.vidModel = sel.value;
+}
+function copyField(btn, clipId, field) {
+  const clip = S.clips.find(c => c.id === clipId);
+  if (!clip || !clip[field]) return;
+  navigator.clipboard.writeText(clip[field]).then(() => {
+    btn.textContent = '✓ Copied'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+async function setHintImg(id, inp) {
+  const file = inp.files[0]; if (!file) return;
+  const b64 = await fileToB64(file);
+  const clip = S.clips.find(c => c.id === id);
+  if (clip) clip._hintB64 = b64;
+  const lbl = document.getElementById('hint-img-label-' + id);
+  if (lbl) lbl.textContent = '✓ image attached';
+}
+async function regenClip(id) {
+  const clip = S.clips.find(c => c.id === id); if (!clip) return;
+  const hint = document.getElementById('hint-text-' + id)?.value || '';
+  const hintB64 = clip._hintB64 || null;
+  clip.loading = true; clip._failed = false;
+  renderStoryboard();
+  try {
+    const result = await genClip(clip, hint, hintB64);
+    Object.assign(clip, result, { loading: false });
+  } catch(e) {
+    clip.loading = false; clip._failed = true;
+    clip.firstFrame = 'Generation failed. Try again.';
+  }
+  renderStoryboard();
+  toast('Clip regenerated');
+}
+// ─── CHARACTER / PRODUCT ──────────────────────────────────
+async function handleChar(inp) {
+  const file = inp.files[0]; if (!file) return;
+  const b64 = await fileToB64(file);
+  S.charB64 = b64;
+  const url = URL.createObjectURL(file);
+  document.getElementById('char-drop').innerHTML = `<img src="${url}">`;
+  document.getElementById('char-lock-box').style.display = 'block';
+  document.getElementById('save-char-btn').style.display = '';
+  const status = document.getElementById('char-lock-status');
+  status.textContent = 'Extracting...';
+  document.getElementById('char-lock-text').value = '';
+  try {
+    const lock = await extractLock([b64], 'character');
+    S.charLock = lock;
+    document.getElementById('char-lock-text').value = lock;
+    status.textContent = '✓ extracted';
+  } catch(e) {
+    document.getElementById('char-lock-text').value = '';
+    status.textContent = '— edit manually';
+  }
+}
+function trigSlot(i) { S.activeSlot = i; document.getElementById('prod-file').click(); }
+async function handleProd(inp) {
+  const file = inp.files[0]; if (!file) return;
+  const b64 = await fileToB64(file);
+  const url = URL.createObjectURL(file);
+  S.prodB64s[S.activeSlot] = b64;
+  const slot = document.getElementById('ps' + S.activeSlot);
+  slot.innerHTML = `<img src="${url}">`;
+  document.getElementById('prod-lock-box').style.display = 'block';
+  document.getElementById('save-prod-btn').style.display = '';
+  const status = document.getElementById('prod-lock-status');
+  status.textContent = 'Extracting...';
+  try {
+    const filled = S.prodB64s.filter(Boolean);
+    const lock = await extractLock(filled, 'product');
+    S.prodLock = lock;
+    document.getElementById('prod-lock-text').value = lock;
+    status.textContent = '✓ extracted';
+  } catch(e) {
+    document.getElementById('prod-lock-text').value = '';
+    status.textContent = '— edit manually';
+  }
+}
+// ─── SAVED ────────────────────────────────────────────────
+function renderSaved() {
+  const cc = document.getElementById('saved-chars');
+  const cp = document.getElementById('saved-prods');
+  if (cc) cc.innerHTML = S.savedChars.map(c => `<button class="saved-pill" onclick="loadChar(${c.id})">${c.label}</button>`).join('');
+  if (cp) cp.innerHTML = S.savedProds.map(p => `<button class="saved-pill" onclick="loadProd(${p.id})">${p.label}</button>`).join('');
+}
+function loadChar(id) {
+  const c = S.savedChars.find(x => x.id === id); if (!c) return;
+  S.charLock = c.lock;
+  document.getElementById('char-lock-box').style.display = 'block';
+  document.getElementById('char-lock-text').value = c.lock;
+  document.getElementById('save-char-btn').style.display = '';
+  if (c.preview) document.getElementById('char-drop').innerHTML = `<img src="${c.preview}">`;
+  toast('Character loaded');
+}
+function loadProd(id) {
+  const p = S.savedProds.find(x => x.id === id); if (!p) return;
+  S.prodLock = p.lock;
+  document.getElementById('prod-lock-box').style.display = 'block';
+  document.getElementById('prod-lock-text').value = p.lock;
+  document.getElementById('save-prod-btn').style.display = '';
+  toast('Product loaded');
+}
+// ─── MODAL ────────────────────────────────────────────────
+function openModal(type) {
+  S.modalType = type;
+  document.getElementById('modal-title').textContent = type === 'char' ? 'Save character' : 'Save product';
+  document.getElementById('modal-input').value = '';
+  document.getElementById('modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-input').focus(), 50);
+}
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function confirmSave() {
+  const label = document.getElementById('modal-input').value.trim() || 'Saved';
+  if (S.modalType === 'char') {
+    const preview = document.getElementById('char-drop').querySelector('img')?.src || null;
+    S.savedChars = [...S.savedChars, { id: Date.now(), label, lock: S.charLock, preview }];
+    lsSet('ugc-chars', S.savedChars);
+  } else {
+    S.savedProds = [...S.savedProds, { id: Date.now(), label, lock: S.prodLock }];
+    lsSet('ugc-prods', S.savedProds);
+  }
+  renderSaved(); closeModal();
+  toast('Saved!');
+}
+// ─── PROJECTS ─────────────────────────────────────────────
+function renderProjects() {
+  if (!S.projects.length) return;
+  document.getElementById('projects-card').style.display = 'block';
+  document.getElementById('projects-list').innerHTML = S.projects.slice(0, 6).map(p => `
+    <div class="project-item">
+      <span class="project-name">${escHtml(p.name)}</span>
+      <span class="project-meta">${p.clips} clips</span>
+      <span class="project-meta">${p.date}</span>
+    </div>`).join('');
+}
+// ─── EXPORT ───────────────────────────────────────────────
+function exportCSV() {
+  const rows = [['Clip', 'Segment', 'Script Line', 'First Frame', 'Last Frame', 'Video Prompt']];
+  S.clips.forEach((c, i) => rows.push([i+1, c.segment, c.scriptLine, c.firstFrame, c.lastFrame, c.videoPrompt]));
+  const csv = rows.map(r => r.map(x => `"${String(x||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'storyboard-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  toast('CSV exported');
+}
+// ─── MODELS SETTINGS ──────────────────────────────────────
+function updateModelSelects() {
+  const img = document.getElementById('img-model');
+  const vid = document.getElementById('vid-model');
+  if (img) { const cur = img.value; img.innerHTML = getAllModels('image').map(m=>`<option>${m}</option>`).join(''); img.value = cur; }
+  if (vid) { const cur = vid.value; vid.innerHTML = getAllModels('video').map(m=>`<option>${m}</option>`).join(''); vid.value = cur; }
+}
+function addModel() {
+  const name = document.getElementById('new-model-name').value.trim(); if (!name) return;
+  const type = document.getElementById('new-model-type').value;
+  if (type === 'image') { S.customImgModels.push(name); lsSet('ugc-img-models', S.customImgModels); }
+  else { S.customVidModels.push(name); lsSet('ugc-vid-models', S.customVidModels); }
+  document.getElementById('new-model-name').value = '';
+  renderModelsSettings(); updateModelSelects();
+  toast('Model added');
+}
+function renderModelsSettings() {
+  const el = document.getElementById('models-list'); if (!el) return;
+  const all = [
+    ...getAllModels('image').map(m => ({ name: m, type: 'image' })),
+    ...getAllModels('video').map(m => ({ name: m, type: 'video' }))
+  ];
+  el.innerHTML = all.map(m => `
+    <div class="model-row-s">
+      <span style="font-size:13px;font-weight:500">${m.name}</span>
+      <span style="font-size:10px;padding:2px 8px;border-radius:20px;text-align:center;background:${m.type==='image'?'#E6F1FB':'#EAF3DE'};color:${m.type==='image'?'#0C447C':'#27500A'}">${m.type}</span>
+      <span style="font-size:10px;color:#bbb">active</span>
+    </div>`).join('');
+}
+// ─── PAGES ────────────────────────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  if (p === 'instructions') tabs[0].classList.add('active');
+  else if (p === 'storyboard') { tabs[1].classList.add('active'); renderStoryboard(); }
+  if (p === 'settings') renderModelsSettings();
+  if (p === 'storyboard' && S.clips.length) document.getElementById('export-btn').style.display = '';
+}
+// ─── KEYBOARD ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+// ─── INIT ─────────────────────────────────────────────────
+loadStorage();
+renderModelsSettings();
+</script>
+</body>
+</html>
